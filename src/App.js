@@ -8,7 +8,7 @@ const App = () => {
   /**
    * Create a variable here that holds the contract address after you deploy!
    */
-  const contractAddress = "0x557187666d9083B87524c85ad885CEa59423de44";
+  const contractAddress = "0x537D1c6d9c5F3bF2F3c8d0478b075ad16d25d764"; //New Contract Address
   const contractABI = abi.abi;
 
   /**
@@ -77,7 +77,7 @@ const App = () => {
         /*
         * Execute the actual wave from your smart contract
         */
-        const waveTxn = await wavePortalContract.wave();
+        const waveTxn = await wavePortalContract.wave("this is a message");
         console.log("Mining...", waveTxn.hash);
 
         await waveTxn.wait();
@@ -101,12 +101,12 @@ const App = () => {
     <div className="mainContainer">
       <div className="dataContainer">
         <div className="header">
-        👋 Hiho... Please say hello! 👋
+        Hiho... Please say hello!
         </div>
 
         <div className="bio">
-          <p>I am Michael and I am a Web3 Developer 🧑‍💻</p>
-          <p>🪙 Connect your Ethereum wallet and wave at me!</p>
+          <p>I am Michael and I am a Web3 Developer</p>
+          <p>Connect your Ethereum wallet and wave at me!</p>
         </div>
 
         {/*
