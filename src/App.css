@@ -1,8 +1,13 @@
+body {
+  background-color: black;
+  color: white;
+}
 .mainContainer {
   display: flex;
   justify-content: center;
   width: 100%;
   margin-top: 64px;
+  
 }
 
 .dataContainer {
@@ -31,4 +36,33 @@
   border: 0;
   border-radius: 5px;
   
+}
+
+.waves {
+  padding: 0 0 8rem 0;;
+}
+
+.wave {
+  display: flex;
+  border-bottom: 1px solid grey;
+  padding: 1rem;
+}
+
+.wave:last-child {
+  border-bottom: none;
+}
+
+.thumb img {
+  outline: 1px solid grey;
+  border-radius: 100%;
+  object-fit: cover;
+}
+
+.wave .top {
+  display: flex;
+  flex-direction: row;
+}
+
+.wave .top > *:last-child {
+  padding-left: 0.5rem;
 }
