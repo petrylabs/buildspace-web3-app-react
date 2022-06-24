@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { ethers } from "ethers";
+import * as React from "react";
+import {useState, useEffect}  from 'react';
+import { MetaMaskInpageProvider } from "@metamask/providers";
+import { Contract, providers, ethers } from "ethers";
 import Moment from 'react-moment';
-import abi from "./utils/WavePortal.json";
-import "./App.css";
+import * as abi from "./utils/WavePortal.json";
+import "./App.scss";
 
 import {
   Gif
@@ -10,9 +12,29 @@ import {
 import { GiphyFetch } from "@giphy/js-fetch-api";
 import { useAsync } from "react-async-hook";
 
+interface IWeb3 {  
+  ethereum?: MetaMaskInpageProvider;
+  provider?: providers.Web3Provider;
+  contract?: Contract;
+  wavesCleaned?: Contract;
+};
+
+interface Wave {
+  waver?: string;
+  countryCode?: string;
+  timestamp?: number;
+  message?: string
+}
+
+declare global {
+  interface Window {
+    ethereum: MetaMaskInpageProvider;
+  }
+}
+
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [allWaves, setAllWaves] = useState([]);
+  const [allWaves, setAllWaves] = useState<Array<{}>>([]);
   const [currentNumber, setCurrentNumber] = useState(0);
   const [countryList, setCountryList] = useState([]);
   const [countryCode, setCountryCode] = useState("");
@@ -30,18 +52,18 @@ const App = () => {
     try {
       const { ethereum } = window;
       if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
+        const provider = new ethers.providers.Web3Provider(ethereum as any);
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
         const waves = await wavePortalContract.getAllWaves();
 
-        let wavesCleaned = [];
-        waves.forEach(wave => {
+        let wavesCleaned: any = [];
+        waves.forEach((wave: Wave) => {
           wavesCleaned.push({
             address: wave.waver,
             countryCode: wave.countryCode,
-            timestamp: new Date(wave.timestamp * 1000),
+            timestamp: new Date(wave?.timestamp ? wave.timestamp * 1000 : 0),
             message: wave.message
           });
         });
@@ -68,7 +90,7 @@ const App = () => {
   /**
   * Make sure the ethereum object injected by Metamask is available
   */
-  const checkMetamaskEthereumObject = (ethereum) => {
+  const checkMetamaskEthereumObject = (ethereum: any) => {
     if (!ethereum) {
       console.log("Make sure you have Metamask installed!");
       return false;
@@ -86,7 +108,9 @@ const App = () => {
       /*
       * Make sure the user has authorized access to at least one account
       */
-      const accounts = await ethereum.request({ method: "eth_accounts" });
+      let accounts: Array<any> = [];
+      const eth_requestAccounts = await ethereum.request({ method: "eth_requestAccounts" });
+      accounts.push(eth_requestAccounts)
       if (accounts.length !== 0) {
         const account = accounts[0];
         console.log("Found an authorized account:", account);
@@ -107,7 +131,9 @@ const App = () => {
     try {
       if(!checkMetamaskEthereumObject(ethereum))
         return;
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      let accounts: Array<any> = [];
+      const eth_requestAccounts = await ethereum.request({ method: "eth_requestAccounts" });
+      accounts.push(eth_requestAccounts)
 
       console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
@@ -123,7 +149,7 @@ const App = () => {
       const { ethereum } = window;
 
       if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
+        const provider = new ethers.providers.Web3Provider(ethereum as any);
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
@@ -155,19 +181,20 @@ const App = () => {
     .then(res => res.json())
     .then(
       (result) => {
-        const sorted = result?.sort((a, b) => a.name.common.localeCompare(b.name.common));
+        const sorted = result?.sort((a: any, b: any) => a.name.common.localeCompare(b.name.common));
         setCountryList(sorted);
       }
     )
     .finally(() => {
-      console.log('end of story');
+      console.log('end of story'); //test
     })
   }
 
   const giphyFetch = new GiphyFetch("63rZnjUDKyyA0VowUPteomkmEBGDON9m");
 
   useAsync(async () => {
-    const { data } = await giphyFetch.gif("fpXxIjftmkk9y");
+    let data: any = null;
+    data = await giphyFetch.gif("fpXxIjftmkk9y");
     setGif(data);
   }, []);
 
@@ -177,14 +204,13 @@ const App = () => {
     getCountryList();
   }, [])
 
-  const getNationality = (countryCode) => {
-    const country = countryList.find(country => country.cca2 == countryCode.toUpperCase());
-    // console.log('Nationality match', country);
+  const getNationality = (countryCode: string) => {
+    const country: any = countryList.find((country: any) => country.cca2 == countryCode.toUpperCase());
     return  country ? country?.demonyms?.eng?.m : countryCode
   }
 
-  const getFlagSvg = (countryCode) => {
-    const country = countryList.find(country => country.cca2 == countryCode.toUpperCase());
+  const getFlagSvg = (countryCode: string) => {
+    const country: any = countryList.find((country: any) => country?.cca2 == countryCode.toUpperCase());
     // console.log('Flag SVG match', country);
     return  country ? country?.flags?.svg : countryCode
   }
@@ -202,11 +228,11 @@ const App = () => {
         </div>
         <div className="message">
           <textarea 
-            class="message_input" 
+            className="message_input" 
             placeholder="Type a message..."
             onChange={(e)=>{setMessage(e.target.value)}}
           ></textarea>
-          <span class="message_chars"></span>
+          <span className="message_chars"></span>
         </div>
         {/*
         * If there is no currentAccount render this button
@@ -220,7 +246,7 @@ const App = () => {
               onChange={(e)=>{setCountryCode(e.target.value)}}
             >
               <option value="">Select a country</option>
-              {countryList.map((country) => {
+              {countryList.map((country: any) => {
                 return <option value={country?.cca2}>{country?.flag} {country?.name?.common}</option>
               })}
             </select>
@@ -236,14 +262,14 @@ const App = () => {
       </div>
       <div className="waves">
           <h2>Waves {allWaves.length}</h2>
-          {allWaves.map((wave, index) => {
+          {allWaves.map((wave: any, index: number) => {
           return (
             <div className="wave">
               <div className="thumb">
-                <img src={getFlagSvg(wave.countryCode)} height={64} width={64} alt="thumb"/>
+                <img src={getFlagSvg(wave?.countryCode)} height={64} width={64} alt="thumb"/>
               </div>
               <div className="body">
-                <div class="top">
+                <div className="top">
                   <div><b>{getNationality(wave.countryCode)}</b>@{wave.address.substr(-8)}</div>
                   <Moment fromNow>{wave.timestamp}</Moment>
                 </div>
